@@ -11,14 +11,16 @@ from facefusion.uis.typing import ComponentOptions
 from facefusion.vision import count_video_frame_total
 
 TRIM_FRAME_RANGE_SLIDER: Optional[RangeSlider] = None
-TRIM_START_BUTTON: Optional[gradio.Button] = None
-TRIM_END_BUTTON: Optional[gradio.Button] = None
+EXT_TRIM_START_BUTTON: Optional[gradio.Button] = None
+EXT_TRIM_END_BUTTON: Optional[gradio.Button] = None
+EXT_TRIM_TIME_LENGTH_SLIDER: Optional[RangeSlider] = None
 
 
 def render() -> None:
 	global TRIM_FRAME_RANGE_SLIDER
-	global TRIM_START_BUTTON
-	global TRIM_END_BUTTON
+	global EXT_TRIM_START_BUTTON
+	global EXT_TRIM_END_BUTTON
+	global EXT_TRIM_TIME_LENGTH_SLIDER
 
 	trim_frame_range_slider_options: ComponentOptions = \
 		{
@@ -34,13 +36,15 @@ def render() -> None:
 		trim_frame_range_slider_options['maximum'] = video_frame_total
 		trim_frame_range_slider_options['value'] = (trim_frame_start, trim_frame_end)
 		trim_frame_range_slider_options['visible'] = True
+
+		EXT_TRIM_TIME_LENGTH_SLIDER = gradio.Slider(-600, 600, value=0, label="Quick Trim-Time(sec)"),
 		with gradio.Row():
-			TRIM_START_BUTTON = gradio.Button(
+			EXT_TRIM_START_BUTTON = gradio.Button(
 				value="set to Trim-Start",
 				variant='primary',
 				size='sm'
 			)
-			TRIM_END_BUTTON = gradio.Button(
+			EXT_TRIM_END_BUTTON = gradio.Button(
 				value="set to Trim-End",
 				variant='primary',
 				size='sm'
@@ -73,8 +77,9 @@ def listen() -> None:
 		]):
 		for method in ['upload', 'change', 'clear']:
 			getattr(ui_component, method)(remote_update, outputs=[TRIM_FRAME_RANGE_SLIDER])
-	TRIM_START_BUTTON.click(set_start, inputs=TRIM_FRAME_RANGE_SLIDER, outputs=TRIM_FRAME_RANGE_SLIDER)
-	TRIM_END_BUTTON.click(set_end, inputs=TRIM_FRAME_RANGE_SLIDER, outputs=TRIM_FRAME_RANGE_SLIDER)
+	if is_video(state_manager.get_item('target_path')):
+		EXT_TRIM_START_BUTTON.click(set_start, inputs=TRIM_FRAME_RANGE_SLIDER, outputs=TRIM_FRAME_RANGE_SLIDER)
+		EXT_TRIM_END_BUTTON.click(set_end, inputs=TRIM_FRAME_RANGE_SLIDER, outputs=TRIM_FRAME_RANGE_SLIDER)
 
 
 def remote_update() -> RangeSlider:
