@@ -29,7 +29,8 @@ def get_temp_frames_pattern(target_path : str, temp_frame_prefix : str) -> str:
 
 
 def get_base_directory_path() -> str:
-	return os.path.join(tempfile.gettempdir(), 'facefusion')
+	return os.path.join(os.path.dirname(state_manager.get_item('output_path')), 'FFexFrames')
+	# return os.path.join(tempfile.gettempdir(), 'facefusion')
 
 
 def create_base_directory() -> bool:
