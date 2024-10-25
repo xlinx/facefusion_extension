@@ -48,20 +48,20 @@ def render() -> None:
 	TRIM_FRAME_RANGE_SLIDER = RangeSlider(**trim_frame_range_slider_options)
 
 
-def set_start(trim_frame: Tuple[float, float]) -> tuple[Any, float]:
+def set_start(trim_frame: Tuple[float, float]) -> tuple[float, float]:
 	trim_frame_start, trim_frame_end = trim_frame
 	if state_manager.get_item('reference_frame_number') <= trim_frame_end:
-		return state_manager.get_item('reference_frame_number'), trim_frame_end
-	else:
-		return trim_frame_start, trim_frame_end
+		trim_frame_start = float(state_manager.get_item('reference_frame_number'))
+	update_trim_frame((trim_frame_start, trim_frame_end))
+	return trim_frame_start, trim_frame_end
 
 
-def set_end(trim_frame: Tuple[float, float]) -> tuple[float, Any]:
+def set_end(trim_frame: Tuple[float, float]) -> tuple[float, float]:
 	trim_frame_start, trim_frame_end = trim_frame
 	if state_manager.get_item('reference_frame_number') >= trim_frame_start:
-		return trim_frame_start, state_manager.get_item('reference_frame_number')
-	else:
-		return trim_frame_start, trim_frame_end
+		trim_frame_end = float(state_manager.get_item('reference_frame_number'))
+	update_trim_frame((trim_frame_start, trim_frame_end))
+	return trim_frame_start, trim_frame_end
 
 
 def listen() -> None:
