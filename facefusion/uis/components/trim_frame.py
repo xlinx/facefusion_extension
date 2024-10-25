@@ -50,12 +50,18 @@ def render() -> None:
 
 def set_start(trim_frame: Tuple[float, float]) -> tuple[Any, float]:
 	trim_frame_start, trim_frame_end = trim_frame
-	return state_manager.get_item('reference_frame_number'), trim_frame_end
+	if state_manager.get_item('reference_frame_number') <= trim_frame_end:
+		return state_manager.get_item('reference_frame_number'), trim_frame_end
+	else:
+		return trim_frame_start, trim_frame_end
 
 
 def set_end(trim_frame: Tuple[float, float]) -> tuple[float, Any]:
 	trim_frame_start, trim_frame_end = trim_frame
-	return trim_frame_start, state_manager.get_item('reference_frame_number')
+	if state_manager.get_item('reference_frame_number') >= trim_frame_start:
+		return trim_frame_start, state_manager.get_item('reference_frame_number')
+	else:
+		return trim_frame_start, trim_frame_end
 
 
 def listen() -> None:
