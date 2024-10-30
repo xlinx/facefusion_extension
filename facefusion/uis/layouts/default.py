@@ -73,6 +73,8 @@ def render() -> gradio.Blocks:
 					face_landmarker.render()
 				with gradio.Blocks():
 					common_options.render()
+				with gradio.Blocks():
+					auto_messaging_realtime.ui()
 	return layout
 
 
