@@ -17,10 +17,20 @@ FaceFusion ext change log
 
 ext-Installation
 ------------
+method 1. (testing)
 ```
 curl https://github.com/xlinx/facefusion_extension/blob/master/applyExt.patch | git apply -v
 ```
+method 2. (manual)
 
+- please replace follow file path by ur self, and restart FF
+
+```
+from
+\facefusion_extension\facefusion\uis\components\trim_frame.py
+to
+\facefusion\facefusion\uis\components\trim_frame.py
+```
 FaceFusion
 ==========
 
