@@ -1,6 +1,8 @@
 
 ### FF extension - QuickTrim Button
-
+- QuickTrim Layout
+![quickTrim_UI.png](images%2FquickTrim_UI.png)
+- QuickTrim Button manual
 ![quickTrim123456.png](images%2FquickTrim123456.png)
 
 ### FF extension - Auto Messaging Realtime (Notify)

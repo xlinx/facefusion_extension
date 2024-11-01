@@ -10,7 +10,6 @@ from threading import Timer
 import gradio as gr
 import requests
 
-
 # from gpiozero import CPUTemperature
 
 # cpu = CPUTemperature()
@@ -34,8 +33,10 @@ def listen() -> None:
 def run(ui: gr.Blocks) -> None:
 	ui.launch()
 
+
 def render() -> gr.Blocks:
 	return ui()
+
 
 class RepeatingTimer(Timer):
 	def run(self):
@@ -46,9 +47,9 @@ class RepeatingTimer(Timer):
 
 
 class EnumSendImageResult(enum.Enum):
-	ALL = 'SD-Image-All'
-	ONLY_GRID = 'Grid-Image-only'
-	NO_GRID = 'Each-Image-noGrid'
+	SWAP_BEFORE_FRAME = 'SWAP_BEFORE_FRAME'
+	SWAP_AFTER_FRAME = 'SWAP_AFTER_FRAME'
+	RESULT_VIDEO = 'RESULT_VIDEO'
 
 	@classmethod
 	def values(cls):
@@ -56,13 +57,14 @@ class EnumSendImageResult(enum.Enum):
 
 
 class EnumSendContent(enum.Enum):
-	SDIMAGE = 'SD-Image'
+	SWAPED_NOW_FRAME = 'SWAPED_NOW_FRAME'
 	# ScreenShot = 'ScreenShot' # for the developer, if u know what you do, u can enable this by yourself.
-	TextPrompt = 'Text-Prompt'
-	Text_neg_prompt = 'Text-negPrompt'
-	PNG_INFO = 'PNG-INFO(max 4096 characters)'
-	SD_INFO = 'SD-INFO(max 4096 characters)'
-	Text_Temperature = 'Text-Temperature'
+	PROCESS_INFO = 'PROCESS_INFO'
+	PROCESS_SETTING = 'PROCESS_SETTING'
+	DISK_SIZE = 'DISK_SIZE'
+
+	# SD_INFO = 'SD-INFO(max 4096 characters)'
+	# Text_Temperature = 'Text-Temperature'
 
 	@classmethod
 	def values(cls):
@@ -70,10 +72,11 @@ class EnumSendContent(enum.Enum):
 
 
 class EnumTriggetType(enum.Enum):
-	SDIMAGE = 'SD-Image-generated'
-	TIMER = 'Timer-Countdown'
-	STATE_TEMPERATURE_GPU = 'STATE-Temperature-GPU '
-	STATE_TEMPERATURE_CPU = 'STATE-Temperature-CPU'
+	EVERY_X_FRAME = 'EVERY_X_FRAME'
+	EVERY_X_SECOND = 'EVERY_X_SECOND'
+
+	# STATE_TEMPERATURE_GPU = 'STATE-Temperature-GPU '
+	# STATE_TEMPERATURE_CPU = 'STATE-Temperature-CPU'
 
 	@classmethod
 	def to_dict(cls):
@@ -172,7 +175,7 @@ def timer(self, setting__im_line_notify_enabled, setting__im_telegram_enabled,
 		  im_telegram_token_botid, im_telegram_token_chatid, im_telegram_msg_header,
 		  setup_enum_send_image_result_radio):
 	if setting_time_count > 0:
-		if EnumTriggetType.TIMER.value in setting_trigger_type:
+		if EnumTriggetType.EVERY_X_SECOND.value in setting_trigger_type:
 			if not (self.timer_count_threading is None):
 				self.timer_count_threading.cancel()
 				log.warning(f"[][Timer][canceled]@{setting_time_count} secs")
@@ -191,7 +194,7 @@ def timer(self, setting__im_line_notify_enabled, setting__im_telegram_enabled,
 			log.warning(f"[][Timer][Start] countdown @{setting_time_count} secs")
 		else:
 			log.warning(
-				f"[][Timer][result_line_notify]: {setting_trigger_type} {EnumTriggetType.TIMER} has not check @{setting_time_count} secs")
+				f"[][Timer][result_line_notify]: {setting_trigger_type} {EnumTriggetType.EVERY_X_SECOND} has not check @{setting_time_count} secs")
 
 	else:
 		log.warning(f"[][Timer][setting_time_count] <0 @{setting_time_count} secs")
@@ -206,12 +209,12 @@ def send_msg_all_from_processing(self, p, setting__im_line_notify_enabled, setti
 								 setup_enum_send_image_result_radio,
 								 setting__im_discord_enabled, im_discord_token_botid,
 								 im_discord_token_chatid, im_discord_msg_header):
-	if EnumSendContent.TextPrompt.value in setting_send_content_with:
+	if EnumSendContent.PROCESS_INFO.value in setting_send_content_with:
 		im_line_notify_msg_header += '\n▣prompt:' + p.prompt
 		im_telegram_msg_header += '\n▣prompt:' + p.prompt
 		im_discord_msg_header += '\n▣prompt:' + p.prompt
 
-	if EnumSendContent.Text_neg_prompt.value in setting_send_content_with:
+	if EnumSendContent.PROCESS_SETTING.value in setting_send_content_with:
 		im_line_notify_msg_header += '\n▣neg-prompt:' + p.negative_prompt
 		im_telegram_msg_header += '\n▣neg-prompt:' + p.negative_prompt
 		im_discord_msg_header += '\n▣neg-prompt:' + p.negative_prompt
@@ -258,7 +261,7 @@ def send_msg_all_lets_go(self, setting__im_line_notify_enabled, setting__im_tele
 	base_folder = os.path.dirname(__file__)
 	global on_image_saved_params
 	if on_image_saved_params is not None:
-		if EnumSendContent.PNG_INFO.value in setting_send_content_with:
+		if EnumSendContent.DISK_SIZE.value in setting_send_content_with:
 			for ele in on_image_saved_params:
 				im_line_notify_msg_header += '\n▣ImgFile-Info:' + str(ele.filename)
 				im_telegram_msg_header += '\n▣ImgFile-Info:' + str(ele.filename)
@@ -269,11 +272,11 @@ def send_msg_all_lets_go(self, setting__im_line_notify_enabled, setting__im_tele
 				im_telegram_msg_header += '\n▣SD-Info:' + str(ele.pnginfo)
 				im_discord_msg_header += '\n▣SD-Info:' + str(ele.pnginfo)
 
-		if EnumSendImageResult.ONLY_GRID.value in setup_enum_send_image_result_radio:
+		if EnumSendImageResult.SWAP_AFTER_FRAME.value in setup_enum_send_image_result_radio:
 			if len(on_image_saved_params) > 1:
 				while len(on_image_saved_params) > 1:
 					on_image_saved_params.pop(0)
-		elif EnumSendImageResult.NO_GRID.value in setup_enum_send_image_result_radio:
+		elif EnumSendImageResult.RESULT_VIDEO.value in setup_enum_send_image_result_radio:
 			if len(on_image_saved_params) > 1:
 				on_image_saved_params.pop()
 
@@ -526,7 +529,7 @@ def send_msg_telegram(self, opened_files, im_telegram_token_botid, im_telegram_t
 def ui():
 	with gr.Blocks() as gr_blocks:
 		# gr.Markdown("Blocks")
-		with gr.Accordion(open=True, label="Auto Messaging Realtime v20240808"):
+		with gr.Accordion(open=True, label="Auto Messaging Realtime v20241101"):
 			with gr.Tab("Setting"):
 				setting__im_line_notify_enabled = gr.Checkbox(label=" 0.Enable LINE-Notify", value=False,
 															  elem_id="state-auto-msg_setting__im_line_notify_enabled")
@@ -541,27 +544,16 @@ def ui():
 					label="1. Trigger: IF [[[ XXX ]]] Then YYY",
 					info="When should send? trigger events by XXX?")
 				with gr.Row():
-					setting_image_count = gr.Slider(1, 100, value=1,
-													label="2.1 " + EnumTriggetType.SDIMAGE.value + " count",
+					setting_image_count = gr.Slider(30, 30000, value=300,
+													label="2.1 Send by " + EnumTriggetType.EVERY_X_FRAME.value + " - Every X frame",
 													step=1,
-													info="[" + EnumTriggetType.SDIMAGE.value + "] send msg by generate count",
+													info="[" + EnumTriggetType.EVERY_X_FRAME.value + "] send msg by generate count",
 													elem_id="state-auto-msg_setting_image_count")
-					setting_time_count = gr.Slider(0, 6000, value=60,
-												   label="2.2  " + EnumTriggetType.TIMER.value,
+					setting_time_count = gr.Slider(5, 6000, value=60,
+												   label="2.2  Send by " + EnumTriggetType.EVERY_X_SECOND.value + " - Every X second",
 												   step=1,
-												   info="[" + EnumTriggetType.TIMER.value + "]send by seconds. ",
+												   info="[" + EnumTriggetType.EVERY_X_SECOND.value + "]send by seconds. ",
 												   elem_id="state-auto-msg_setting_time_count")
-				with gr.Row():
-					setting_temperature_gpu = gr.Slider(0, 100, value=60,
-														label="2.3 " + EnumTriggetType.STATE_TEMPERATURE_GPU.value + " limit °C",
-														step=1,
-														info="[" + EnumTriggetType.STATE_TEMPERATURE_GPU.value + "] 60°C/140°F",
-														elem_id="state-auto-msg_setting_temperature_gpu")
-					setting_temperature_cpu = gr.Slider(0, 100, value=60,
-														label="2.4 " + EnumTriggetType.STATE_TEMPERATURE_CPU.value + " limit °C",
-														step=1,
-														info="[" + EnumTriggetType.STATE_TEMPERATURE_CPU.value + "] 60°C/140°F",
-														elem_id="state-auto-msg_setting_temperature_cpu")
 
 				setting_send_content_with = gr.CheckboxGroup(
 					EnumSendContent.values(),
@@ -729,7 +721,8 @@ def ui():
 					placeholder="Export&Save first; if here empty will load from disk")
 	all_args = [setting__im_line_notify_enabled, setting__im_telegram_enabled,
 				setting_trigger_type, setting_image_count, setting_time_count,
-				setting_temperature_gpu, setting_temperature_cpu, setting_send_content_with,
+				# setting_temperature_gpu, setting_temperature_cpu,
+				setting_send_content_with,
 				im_line_notify_token, im_line_notify_msg_header,
 				im_telegram_token_botid, im_telegram_token_chatid, im_telegram_msg_header,
 				setup_enum_send_image_result_radio,
@@ -745,13 +738,6 @@ def ui():
 	im_telegram_getupdates.click(tel_getupdate,
 								 inputs=[im_telegram_token_botid],
 								 outputs=[im_telegram_getupdates_result])
-	setting_temperature_gpu.change(fn=update_temperature_label,
-								   inputs=[setting_temperature_gpu]
-								   )
-	setting_temperature_cpu.change(fn=update_temperature_label,
-								   inputs=[setting_temperature_cpu]
-								   )
-
 	setting_send_button.click(button_setting,
 							  inputs=all_args,
 							  outputs=[setting_history])
@@ -768,26 +754,6 @@ def ui():
 							  inputs=all_args,
 							  outputs=[setting_history])
 	setting_timer_cancel.click(timer_cancel)
-	# im_line_notify_token.change(fn=None,
-	# 							_js="function(v){localStorage.setItem('im_line_notify_token',v)}",
-	# 							inputs=im_line_notify_token)
-	# im_telegram_token_botid.change(fn=None,
-	# 							   _js="function(v){localStorage.setItem('im_telegram_token_botid',v)}",
-	# 							   inputs=im_telegram_token_botid)
-	# im_telegram_token_chatid.change(fn=None,
-	# 								_js="function(v){localStorage.setItem('im_telegram_token_chatid',v)}",
-	# 								inputs=im_telegram_token_chatid)
-
-	#hot fix stable-diffusion-webui-forge
-	# gr_blocks.load(fn=None, outputs=[im_line_notify_token, im_telegram_token_botid, im_telegram_token_chatid],
-	#                _js="function(){return ["
-	#                    "localStorage.getItem('im_line_notify_token'),"
-	#                    "localStorage.getItem('im_telegram_token_botid'),"
-	#                    "localStorage.getItem('im_telegram_token_chatid')]}")
-
-	# gr_blocks.load(fn=None, inputs=None, outputs=[im_telegram_token_botid], _js="function(){load_LocalStorge('auto-msg-realtime-line-notify-token', 'auto-msg-realtime-line-notify-token')}")
-	# gr_blocks.load(fn=None, inputs=None, outputs=[im_telegram_token_chatid], _js="function(){load_LocalStorge('auto-msg-realtime-telegram-bot-chat-id', 'auto-msg-realtime-telegram-bot-chat-id')}")
-
 	return all_args
 
 
@@ -811,7 +777,7 @@ def postprocess(self, p, processed, *args):
 	if (args_dict.get('setting__im_line_notify_enabled') or
 		args_dict.get('setting__im_telegram_enabled') or
 		args_dict.get('setting__im_discord_enabled')):
-		if EnumTriggetType.SDIMAGE.value in args_dict.get('setting_trigger_type'):
+		if EnumTriggetType.EVERY_X_FRAME.value in args_dict.get('setting_trigger_type'):
 			self.send_msg_all_from_processing(p, *args)
 
 
@@ -859,6 +825,8 @@ args_dict = None
 def on_image_saved(params):
 	global on_image_saved_params
 	on_image_saved_params.append(params)
+
+
 # log.warning(f"[event][on_image_saved][params]: {on_image_saved_params} {print_obj_x(on_image_saved_params)} {params} {print_obj_x(params)}")
 
 
