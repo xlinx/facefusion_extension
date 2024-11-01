@@ -1,5 +1,15 @@
-FaceFusion ext change log
-==========
+
+### FF extension - QuickTrim Button
+
+![quickTrim123456.png](images%2FquickTrim123456.png)
+
+### FF extension - Auto Messaging Realtime (Notify)
+- working on...
+
+![AMR_set.png](images%2FAMR_set.png)
+
+### FaceFusion ext change log
+
 
 - quick trim-button
 - change temp folder from c to other place(extracting frames)
